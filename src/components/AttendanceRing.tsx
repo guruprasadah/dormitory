@@ -20,7 +20,7 @@ export function AttendanceRing({
   const offset = CIRCUMFERENCE - (clamped / 100) * CIRCUMFERENCE;
 
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-5">
       <div className="relative shrink-0" style={{ width: size, height: size }}>
         <svg viewBox="0 0 120 120" className="-rotate-90" width={size} height={size} aria-hidden>
           <circle

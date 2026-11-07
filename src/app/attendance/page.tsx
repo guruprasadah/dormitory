@@ -65,7 +65,7 @@ async function AttendanceContent({ searchParams }: Pick<PageProps<"/attendance">
             No courses with attendance in this term.
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid min-w-0 gap-4 md:grid-cols-2">
             {summary.courses.map((course) => (
               <CourseCard key={course.courseId} course={course} />
             ))}

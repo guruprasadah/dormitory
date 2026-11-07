@@ -67,7 +67,7 @@ async function RecentResources() {
 
 function RecentResourceSkeleton() {
   return (
-    <div className="grid gap-3 sm:grid-cols-3" aria-busy="true">
+    <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}

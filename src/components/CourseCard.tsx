@@ -7,8 +7,8 @@ import { AttendanceBar } from "./AttendanceRing";
 
 export function CourseCard({ course }: { course: CourseDto }) {
   return (
-    <article className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <header className="flex items-start justify-between gap-4">
+    <article className="flex min-w-0 flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
+      <header className="flex min-w-0 items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
           <h3 className="truncate text-base font-semibold text-zinc-900 dark:text-zinc-100">
             {course.courseName}
@@ -60,7 +60,7 @@ function ComponentRow({ component }: { component: ComponentDto }) {
             </span>
           )}
         </span>
-        <span className="flex shrink-0 items-center gap-3">
+        <span className="flex shrink-0 items-center gap-2 sm:gap-3">
           {component.unmarkedLessons > 0 && (
             <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
               {component.unmarkedLessons} unmarked

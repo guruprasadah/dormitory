@@ -24,3 +24,19 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/*
+ * Horizontally scrollable nav on narrow screens. The trailing fade hints that
+ * more items sit off-screen; it is removed at `lg` where everything fits.
+ */
+.nav-fade {
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+}
+
+@media (min-width: 1024px) {
+  .nav-fade {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+}

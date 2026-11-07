@@ -21,7 +21,7 @@ export function RingSkeleton() {
 
 export function AssignmentListSkeleton() {
   return (
-    <ul className="grid gap-3 sm:grid-cols-2" aria-busy="true">
+    <ul className="grid min-w-0 gap-3 sm:grid-cols-2" aria-busy="true">
       {Array.from({ length: 4 }).map((_, i) => (
         <li key={i} className="flex flex-col gap-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
           <div className="flex justify-between gap-3">
@@ -37,7 +37,7 @@ export function AssignmentListSkeleton() {
 
 export function CourseGridSkeleton() {
   return (
-    <div className="grid gap-4 md:grid-cols-2" aria-busy="true">
+    <div className="grid min-w-0 gap-4 md:grid-cols-2" aria-busy="true">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="flex flex-col gap-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
           <div className="flex justify-between gap-4">

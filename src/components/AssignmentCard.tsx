@@ -42,7 +42,7 @@ export function AssignmentList({ assignments }: { assignments: AssignmentDto[] }
   }
 
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="grid min-w-0 gap-3 sm:grid-cols-2">
       {assignments.map((assignment) => (
         <li key={`${assignment.classId}:${assignment.id}`}>
           <AssignmentCard assignment={assignment} />

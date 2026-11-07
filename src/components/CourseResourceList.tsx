@@ -42,31 +42,36 @@ function CourseResourcesRow({ course }: { course: CourseResourcesDto }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <article className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+    <article className="min-w-0 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+      {/*
+        The whole header is the tap target. Children are block-level with
+        `min-w-0` so long course names can't overflow their flex/grid track and
+        sit on top of the button (which swallowed taps on narrow screens).
+      */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center gap-3 p-4 text-left sm:p-5"
+        className="flex w-full touch-manipulation items-center gap-3 p-4 text-left sm:p-5"
       >
         <ChevronIcon open={open} />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+        <span className="min-w-0 flex-1 overflow-hidden">
+          <span className="block break-words text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             {course.courseName}
           </span>
-          {course.courseCode && (
-            <span className="mt-0.5 block truncate font-mono text-xs text-zinc-500">
+          {course.courseCode && !course.courseName.includes(course.courseCode) && (
+            <span className="mt-0.5 block break-all font-mono text-xs text-zinc-500">
               {course.courseCode}
             </span>
           )}
         </span>
-        <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+        <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
           {course.resourceCount} {course.resourceCount === 1 ? "resource" : "resources"}
         </span>
       </button>
 
       {open && (
-        <div className="border-t border-zinc-100 px-4 pb-4 sm:px-5 dark:border-zinc-800">
+        <div className="min-w-0 border-t border-zinc-100 px-3 pb-3 sm:px-5 sm:pb-4 dark:border-zinc-800">
           {course.components.map((component) => (
             <ResourceComponentSection key={component.classId} component={component} />
           ))}
@@ -82,15 +87,17 @@ function ResourceComponentSection({ component }: { component: ComponentResources
   const items = sortByCreated(component.items, direction);
 
   return (
-    <section className="pt-4">
+    <section className="min-w-0 pt-4">
       <div className="mb-2 flex items-center justify-between gap-3">
-        <h4 className="min-w-0 truncate text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-          {component.componentType || "Class"}
-          {component.className && (
-            <span className="ml-2 font-normal normal-case tracking-normal text-zinc-400">
-              {component.className}
-            </span>
-          )}
+        <h4 className="min-w-0 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+          <span className="block break-words">
+            {component.componentType || "Class"}
+            {component.className && (
+              <span className="ml-2 font-normal normal-case tracking-normal text-zinc-400">
+                {component.className}
+              </span>
+            )}
+          </span>
         </h4>
         <button
           type="button"
@@ -101,15 +108,15 @@ function ResourceComponentSection({ component }: { component: ComponentResources
           title={
             direction === "newest" ? "Newest first — click for oldest first" : "Oldest first — click for newest first"
           }
-          className="grid size-7 shrink-0 place-items-center rounded-md border border-zinc-200 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+          className="grid size-8 shrink-0 touch-manipulation place-items-center rounded-md border border-zinc-200 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 active:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
         >
           <SortIcon direction={direction} />
         </button>
       </div>
 
-      <ul className="flex flex-col gap-0.5">
+      <ul className="flex min-w-0 flex-col gap-0.5">
         {items.map((item) => (
-          <li key={`${component.classId}:${item.id}`}>
+          <li key={`${component.classId}:${item.id}`} className="min-w-0">
             <ResourceRow item={item} />
           </li>
         ))}
@@ -124,11 +131,11 @@ function ResourceRow({ item }: { item: ResourceItemDto }) {
       href={item.href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
+      className="group flex min-w-0 touch-manipulation items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-zinc-50 active:bg-zinc-100 dark:hover:bg-zinc-800/60 dark:active:bg-zinc-800 sm:py-2"
     >
       <ResourceIcon kind={item.kind} />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm text-zinc-800 group-hover:text-zinc-950 dark:text-zinc-200 dark:group-hover:text-zinc-50">
+      <span className="min-w-0 flex-1 overflow-hidden">
+        <span className="block break-words text-sm text-zinc-800 group-hover:text-zinc-950 dark:text-zinc-200 dark:group-hover:text-zinc-50">
           {item.name}
         </span>
         {(item.meta || item.size !== null) && (
