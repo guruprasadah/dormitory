@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "npm --prefix vendor/fijii run build"
+    "postinstall": "node scripts/build-fijii.mjs"
   },
   "dependencies": {
     "fijii": "file:vendor/fijii",

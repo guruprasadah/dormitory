@@ -11,7 +11,7 @@ private API the Digiicampus web app uses.
 1. Install dependencies (this also compiles the vendored SDK):
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. Copy `.env.example` to `.env.local` and fill in both values:
@@ -24,7 +24,7 @@ private API the Digiicampus web app uses.
 3. Run it:
 
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
    Open <http://localhost:3000>.
@@ -53,8 +53,11 @@ private API the Digiicampus web app uses.
 `package.json` (its `src/` and `dist/` are excluded). So the SDK is **vendored** at
 `vendor/fijii` in source form and installed as a `file:` dependency.
 
-`npm install` runs the `postinstall` script, which compiles `vendor/fijii` with the app's
-TypeScript (`dist/` is gitignored). `next.config.ts` adds it to `transpilePackages`.
+`pnpm install` runs the `postinstall` script (`scripts/build-fijii.mjs`), which compiles
+`vendor/fijii` with the app's TypeScript (`dist/` is gitignored) and copies the output into the
+location pnpm links. pnpm hard-links a *copy* of a `file:` dependency rather than symlinking it
+(npm symlinks), so the build can't rely on writing to `vendor/fijii` alone. `next.config.ts` adds
+the package to `transpilePackages`.
 
 To update the SDK, replace `vendor/fijii/src` (and `tsconfig.json`) from the upstream repo and
-re-run `npm run postinstall`.
+re-run `pnpm postinstall`.

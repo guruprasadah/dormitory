@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored third-party SDK — upstream code, not ours to lint.
+    "vendor/**",
   ]),
 ]);
 
