@@ -46,6 +46,7 @@ private API the Digiicampus web app uses.
 | `/` | Term attendance ring, a few key stats, and the four nearest pending assignments |
 | `/attendance` | Term switcher and one card per course: overall % plus per-component rows with expandable per-lesson status |
 | `/assignments` | All pending assignments with "due within" and "include overdue" filters |
+| `/resources` | One expandable row per course revealing its files and links, grouped by lecture/practical |
 
 ## The vendored SDK
 

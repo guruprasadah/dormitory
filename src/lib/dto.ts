@@ -1,4 +1,12 @@
-import type { ComponentSummary, CourseSummary, PendingAssignment, Term, TermSummary } from "fijii";
+import type {
+  ClassResource,
+  Classroom,
+  ComponentSummary,
+  CourseSummary,
+  PendingAssignment,
+  Term,
+  TermSummary,
+} from "fijii";
 
 /**
  * Trimmed, plain-data shapes handed to Client Components. Server-only SDK
@@ -76,6 +84,42 @@ export interface AssignmentDto {
 export interface PendingAssignmentsDto {
   assignments: AssignmentDto[];
   /** Classes whose assignments could not be fetched. */
+  failedClasses: number;
+}
+
+export type ResourceKind = "pdf" | "document" | "slides" | "sheet" | "image" | "video" | "audio" | "archive" | "link" | "file";
+
+export interface ResourceItemDto {
+  id: number;
+  mediaId: number;
+  name: string;
+  kind: ResourceKind;
+  /** Signed URL — valid for roughly an hour. */
+  href: string;
+  /** Bytes, or null when unknown. */
+  size: number | null;
+  /** Module / session context, e.g. "UNIT II · Session 4". */
+  meta: string | null;
+}
+
+export interface ComponentResourcesDto {
+  classId: number;
+  componentType: string;
+  className: string;
+  items: ResourceItemDto[];
+}
+
+export interface CourseResourcesDto {
+  courseId: number;
+  courseName: string;
+  courseCode: string | null;
+  resourceCount: number;
+  components: ComponentResourcesDto[];
+}
+
+export interface ResourcesDto {
+  courses: CourseResourcesDto[];
+  /** Classes whose resources could not be fetched. */
   failedClasses: number;
 }
 
@@ -158,4 +202,116 @@ export function attendanceBand(percentage: number): AttendanceBand {
   if (percentage >= 85) return "good";
   if (percentage >= 75) return "watch";
   return "risk";
+}
+
+const KIND_BY_EXTENSION: Record<string, ResourceKind> = {
+  pdf: "pdf",
+  doc: "document",
+  docx: "document",
+  odt: "document",
+  rtf: "document",
+  txt: "document",
+  ppt: "slides",
+  pptx: "slides",
+  odp: "slides",
+  key: "slides",
+  xls: "sheet",
+  xlsx: "sheet",
+  csv: "sheet",
+  ods: "sheet",
+  png: "image",
+  jpg: "image",
+  jpeg: "image",
+  gif: "image",
+  webp: "image",
+  svg: "image",
+  heic: "image",
+  mp4: "video",
+  mov: "video",
+  mkv: "video",
+  webm: "video",
+  avi: "video",
+  mp3: "audio",
+  m4a: "audio",
+  wav: "audio",
+  zip: "archive",
+  rar: "archive",
+  "7z": "archive",
+  tar: "archive",
+  gz: "archive",
+};
+
+/**
+ * Classify a resource for its icon. `mediaType` is not enumerated upstream, so
+ * fall back to the file extension and then to a generic file.
+ */
+export function resourceKind(mediaType: string | null | undefined, name: string, weblink: string | null): ResourceKind {
+  if (weblink) return "link";
+  const type = (mediaType ?? "").toLowerCase();
+  if (/video/.test(type)) return "video";
+  if (/audio/.test(type)) return "audio";
+  if (/image|picture|photo/.test(type)) return "image";
+  if (/link|url|embed/.test(type)) return "link";
+
+  const extension = name.includes(".") ? name.split(".").pop()!.toLowerCase() : "";
+  return KIND_BY_EXTENSION[extension] ?? "file";
+}
+
+function resourceMeta(moduleTitle: string | null, sessionName: string | null): string | null {
+  const parts = [moduleTitle?.trim(), sessionName?.trim()].filter((part): part is string => !!part);
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+/**
+ * Group class resources into courses. A course can be taught as several classes
+ * (Lecture / Practical / Tutorial), each with its own resource list, so
+ * resources are fetched per class and merged by `courseId` here.
+ */
+export function buildResourcesDto(
+  classes: Classroom[],
+  resourcesByClass: Map<number, ClassResource[]>,
+): CourseResourcesDto[] {
+  const byCourse = new Map<number, CourseResourcesDto>();
+
+  for (const cls of classes) {
+    const resources = resourcesByClass.get(cls.id);
+    if (!resources) continue;
+
+    let course = byCourse.get(cls.courseId);
+    if (!course) {
+      course = {
+        courseId: cls.courseId,
+        courseName: cls.courseName,
+        courseCode: cls.courseCode?.trim() || null,
+        resourceCount: 0,
+        components: [],
+      };
+      byCourse.set(cls.courseId, course);
+    }
+
+    const items = resources
+      .map<ResourceItemDto>((resource) => ({
+        id: resource.id,
+        mediaId: resource.mediaId,
+        name: resource.mediaName || resource.urlName || "Untitled resource",
+        kind: resourceKind(resource.mediaType, resource.mediaName ?? "", resource.weblink),
+        href: resource.weblink || resource.mediaUrl,
+        size: typeof resource.size === "number" && resource.size > 0 ? resource.size : null,
+        meta: resourceMeta(resource.moduleTitle, resource.sessionName),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    if (items.length === 0) continue;
+
+    course.resourceCount += items.length;
+    course.components.push({
+      classId: cls.id,
+      componentType: cls.courseComponentTypeName ?? "",
+      className: cls.className ?? "",
+      items,
+    });
+  }
+
+  const courses = [...byCourse.values()].sort((a, b) => a.courseName.localeCompare(b.courseName));
+  return courses;
 }
