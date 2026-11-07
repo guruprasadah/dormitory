@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Build output for the vendored submodule (upstream ignores it; belt and braces)
+vendor/fijii/dist/

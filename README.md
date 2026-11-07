@@ -51,14 +51,30 @@ private API the Digiicampus web app uses.
 ## The vendored SDK
 
 `fijii` is not published to npm, and a plain git install ships only `README.md` +
-`package.json` (its `src/` and `dist/` are excluded). So the SDK is **vendored** at
-`vendor/fijii` in source form and installed as a `file:` dependency.
+`package.json` (its `src/` and `dist/` are excluded). So the SDK is **vendored as a git
+submodule** at `vendor/fijii` and installed as a `file:` dependency.
+
+The submodule tracks upstream exactly — no local edits — pinned to a specific commit so builds
+are reproducible. `dist/` is compiled at install time into the submodule (upstream gitignores it,
+so the submodule stays clean).
 
 `pnpm install` runs the `postinstall` script (`scripts/build-fijii.mjs`), which compiles
-`vendor/fijii` with the app's TypeScript (`dist/` is gitignored) and copies the output into the
-location pnpm links. pnpm hard-links a *copy* of a `file:` dependency rather than symlinking it
-(npm symlinks), so the build can't rely on writing to `vendor/fijii` alone. `next.config.ts` adds
-the package to `transpilePackages`.
+`vendor/fijii` with the app's TypeScript and copies the output into the location pnpm links.
+pnpm hard-links a *copy* of a `file:` dependency rather than symlinking it (npm symlinks), so the
+build can't rely on writing to `vendor/fijii` alone. `next.config.ts` adds the package to
+`transpilePackages`.
 
-To update the SDK, replace `vendor/fijii/src` (and `tsconfig.json`) from the upstream repo and
-re-run `pnpm postinstall`.
+A fresh clone needs the submodule:
+
+```bash
+git clone --recurse-submodules <repo>
+# or, if already cloned:
+git submodule update --init --recursive
+```
+
+To update the SDK, move the submodule to a new upstream commit:
+
+```bash
+git submodule update --remote vendor/fijii
+pnpm postinstall
+```
