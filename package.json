@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "npm --prefix vendor/fijii run build"
   },
   "dependencies": {
+    "fijii": "file:vendor/fijii",
     "next": "16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0"
