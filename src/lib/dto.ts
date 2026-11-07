@@ -1,3 +1,4 @@
+import { parseDigiiDate } from "fijii";
 import type {
   ClassResource,
   Classroom,
@@ -100,6 +101,8 @@ export interface ResourceItemDto {
   size: number | null;
   /** Module / session context, e.g. "UNIT II · Session 4". */
   meta: string | null;
+  /** ISO instant from the portal's `createdTimestamp`, or null when unparseable. */
+  createdAt: string | null;
 }
 
 export interface ComponentResourcesDto {
@@ -263,6 +266,28 @@ function resourceMeta(moduleTitle: string | null, sessionName: string | null): s
 }
 
 /**
+ * Newest first. Resources without a parsable `createdTimestamp` sink to the end
+ * rather than sorting as epoch 0, and ties fall back to a stable ordering so
+ * the list doesn't shuffle between requests.
+ */
+function compareChronologically(
+  aDate: Date | null,
+  bDate: Date | null,
+  a: ClassResource,
+  b: ClassResource,
+): number {
+  if (aDate && bDate) {
+    const diff = bDate.getTime() - aDate.getTime();
+    if (diff !== 0) return diff;
+  } else if (aDate) {
+    return -1;
+  } else if (bDate) {
+    return 1;
+  }
+  return a.mediaName.localeCompare(b.mediaName) || a.id - b.id;
+}
+
+/**
  * Group class resources into courses. A course can be taught as several classes
  * (Lecture / Practical / Tutorial), each with its own resource list, so
  * resources are fetched per class and merged by `courseId` here.
@@ -290,7 +315,14 @@ export function buildResourcesDto(
     }
 
     const items = resources
-      .map<ResourceItemDto>((resource) => ({
+      .map((resource) => ({
+        resource,
+        // Naive portal timestamps ("2026-11-05 09:00:00", no zone) must go
+        // through the SDK parser; `new Date()` would shift them off IST.
+        createdAt: parseDigiiDate(resource.createdTimestamp),
+      }))
+      .sort((a, b) => compareChronologically(a.createdAt, b.createdAt, a.resource, b.resource))
+      .map<ResourceItemDto>(({ resource, createdAt }) => ({
         id: resource.id,
         mediaId: resource.mediaId,
         name: resource.mediaName || resource.urlName || "Untitled resource",
@@ -298,8 +330,8 @@ export function buildResourcesDto(
         href: resource.weblink || resource.mediaUrl,
         size: typeof resource.size === "number" && resource.size > 0 ? resource.size : null,
         meta: resourceMeta(resource.moduleTitle, resource.sessionName),
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
+        createdAt: createdAt?.toISOString() ?? null,
+      }));
 
     if (items.length === 0) continue;
 
