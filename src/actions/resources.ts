@@ -3,9 +3,14 @@
 import type { ClassResource } from "fijii";
 import { makeClient } from "@/lib/fijii";
 import { fail, ok, toActionError, type ActionResult } from "@/lib/errors";
-import { buildResourcesDto, type ResourcesDto } from "@/lib/dto";
+import {
+  buildResourcesDto,
+  recentResources,
+  type RecentResourceDto,
+  type ResourcesDto,
+} from "@/lib/dto";
 
-export async function getResourcesAction(): Promise<ActionResult<ResourcesDto>> {
+async function loadResources(): Promise<ActionResult<ResourcesDto>> {
   try {
     const fijii = makeClient();
     const classes = await fijii.classes.list();
@@ -34,3 +39,15 @@ export async function getResourcesAction(): Promise<ActionResult<ResourcesDto>> 
     return fail(toActionError(error));
   }
 }
+
+export async function getResourcesAction(): Promise<ActionResult<ResourcesDto>> {
+  return loadResources();
+}
+
+/** The most recently updated resources across every course, for the home page. */
+export async function getRecentResourcesAction(limit = 3): Promise<ActionResult<RecentResourceDto[]>> {
+  const result = await loadResources();
+  if (!result.ok) return result;
+  return ok(recentResources(result.data.courses, limit));
+}
+

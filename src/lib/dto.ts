@@ -103,6 +103,8 @@ export interface ResourceItemDto {
   meta: string | null;
   /** ISO instant from the portal's `createdTimestamp`, or null when unparseable. */
   createdAt: string | null;
+  /** ISO instant from the portal's `modifiedTimestamp` (falls back to created), or null. */
+  updatedAt: string | null;
 }
 
 export interface ComponentResourcesDto {
@@ -124,6 +126,38 @@ export interface ResourcesDto {
   courses: CourseResourcesDto[];
   /** Classes whose resources could not be fetched. */
   failedClasses: number;
+}
+
+export interface RecentResourceDto extends ResourceItemDto {
+  courseId: number;
+  courseName: string;
+  courseCode: string | null;
+  componentType: string;
+}
+
+/**
+ * Flatten courses into a single list ordered by most recent update. Undated
+ * resources are dropped (a "recently updated" card can't place them).
+ */
+export function recentResources(courses: CourseResourcesDto[], limit: number): RecentResourceDto[] {
+  const all: RecentResourceDto[] = [];
+  for (const course of courses) {
+    for (const component of course.components) {
+      for (const item of component.items) {
+        if (!item.updatedAt) continue;
+        all.push({
+          ...item,
+          courseId: course.courseId,
+          courseName: course.courseName,
+          courseCode: course.courseCode,
+          componentType: component.componentType,
+        });
+      }
+    }
+  }
+  return all
+    .sort((a, b) => Date.parse(b.updatedAt!) - Date.parse(a.updatedAt!))
+    .slice(0, limit);
 }
 
 export function toTermDto(term: Term): TermDto {
@@ -315,14 +349,19 @@ export function buildResourcesDto(
     }
 
     const items = resources
-      .map((resource) => ({
-        resource,
+      .map((resource) => {
         // Naive portal timestamps ("2026-11-05 09:00:00", no zone) must go
         // through the SDK parser; `new Date()` would shift them off IST.
-        createdAt: parseDigiiDate(resource.createdTimestamp),
-      }))
+        const createdAt = parseDigiiDate(resource.createdTimestamp);
+        const modifiedAt = parseDigiiDate(resource.modifiedTimestamp);
+        return {
+          resource,
+          createdAt,
+          updatedAt: modifiedAt ?? createdAt,
+        };
+      })
       .sort((a, b) => compareChronologically(a.createdAt, b.createdAt, a.resource, b.resource))
-      .map<ResourceItemDto>(({ resource, createdAt }) => ({
+      .map<ResourceItemDto>(({ resource, createdAt, updatedAt }) => ({
         id: resource.id,
         mediaId: resource.mediaId,
         name: resource.mediaName || resource.urlName || "Untitled resource",
@@ -331,6 +370,7 @@ export function buildResourcesDto(
         size: typeof resource.size === "number" && resource.size > 0 ? resource.size : null,
         meta: resourceMeta(resource.moduleTitle, resource.sessionName),
         createdAt: createdAt?.toISOString() ?? null,
+        updatedAt: updatedAt?.toISOString() ?? null,
       }));
 
     if (items.length === 0) continue;

@@ -71,6 +71,33 @@ export function formatBytes(bytes: number): string {
   return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`;
 }
 
+/**
+ * "3 days ago"-style label. `now` is a parameter rather than an implicit
+ * `Date.now()` so the server-rendered HTML and the hydrated client agree.
+ */
+export function formatRelativeUpdate(iso: string | null, now: Date = new Date()): string {
+  if (!iso) return "date unknown";
+  const then = new Date(iso);
+  if (Number.isNaN(then.getTime())) return "date unknown";
+
+  const minutes = Math.floor((now.getTime() - then.getTime()) / 60_000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} ${days === 1 ? "day" : "days"} ago`;
+
+  return new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(then);
+}
+
 export const bandText: Record<AttendanceBand, string> = {
   good: "text-emerald-600 dark:text-emerald-400",
   watch: "text-amber-600 dark:text-amber-400",

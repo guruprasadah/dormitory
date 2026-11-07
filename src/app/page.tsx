@@ -2,10 +2,12 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getAttendanceAction } from "@/actions/attendance";
 import { getPendingAssignmentsAction } from "@/actions/assignments";
+import { getRecentResourcesAction } from "@/actions/resources";
 import { AttendanceRing } from "@/components/AttendanceRing";
 import { AssignmentList } from "@/components/AssignmentCard";
 import { ErrorBanner } from "@/components/ErrorBanner";
-import { AssignmentListSkeleton, RingSkeleton } from "@/components/Skeletons";
+import { RecentResourceList } from "@/components/RecentResourceList";
+import { AssignmentListSkeleton, RingSkeleton, Skeleton } from "@/components/Skeletons";
 import { formatDue } from "@/lib/format";
 
 export default function HomePage() {
@@ -30,6 +32,20 @@ export default function HomePage() {
 
       <section>
         <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+            Recently updated resources
+          </h2>
+          <Link href="/resources" className="text-xs font-medium text-zinc-600 hover:underline dark:text-zinc-400">
+            All resources →
+          </Link>
+        </div>
+        <Suspense fallback={<RecentResourceSkeleton />}>
+          <RecentResources />
+        </Suspense>
+      </section>
+
+      <section>
+        <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Due soon</h2>
           <Link href="/assignments" className="text-xs font-medium text-zinc-600 hover:underline dark:text-zinc-400">
             All pending →
@@ -39,6 +55,29 @@ export default function HomePage() {
           <UpcomingAssignments />
         </Suspense>
       </section>
+    </div>
+  );
+}
+
+async function RecentResources() {
+  const result = await getRecentResourcesAction(3);
+  if (!result.ok) return <ErrorBanner error={result.error} />;
+  return <RecentResourceList resources={result.data} />;
+}
+
+function RecentResourceSkeleton() {
+  return (
+    <div className="grid gap-3 sm:grid-cols-3" aria-busy="true">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex h-36 flex-col gap-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
+        >
+          <Skeleton className="size-8 rounded-md" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-3 w-2/3" />
+        </div>
+      ))}
     </div>
   );
 }
