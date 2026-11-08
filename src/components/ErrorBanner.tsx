@@ -21,9 +21,15 @@ export function ErrorBanner({ error }: { error: ActionError }) {
       <p className="font-medium">Couldn’t load data from the portal</p>
       <p className="mt-1 opacity-90">{error.message}</p>
       {error.kind === "config" && (
-        <p className="mt-2 font-mono text-xs opacity-80">
-          cp .env.example .env.local → fill DIGII_TOKEN + DIGII_BASE_URL → restart the dev server
-        </p>
+        <>
+          <p className="mt-2 font-mono text-xs opacity-80">
+            cp .env.example .env.local → fill DIGII_TOKEN + DIGII_BASE_URL → restart the dev server
+          </p>
+          <p className="mt-1 text-xs opacity-80">
+            For screenshots and demos, restart with <span className="font-mono">DEMO_MODE=1</span>{" "}
+            to run on fictional data.
+          </p>
+        </>
       )}
     </div>
   );

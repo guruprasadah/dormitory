@@ -29,8 +29,33 @@ private API the Digiicampus web app uses.
 
    Open <http://localhost:3000>.
 
-## How it works
+## Demo mode
 
+Run the dashboard on fictional data — no token, no portal — for screenshots or
+sharing:
+
+```bash
+DEMO_MODE=1 pnpm dev
+```
+
+A yellow **DEMO DATA** strip and a `DEMO` badge in the header mark it. Data
+served in demo mode is defined in `src/lib/demo/` (Semester 5 B.Tech CSE
+courses, attendance, assignments and resources). It is opt-in via `DEMO_MODE=1`
+and overrides `DIGII_TOKEN` / `DIGII_BASE_URL`; the real client path is
+unchanged when the flag is absent.
+
+Demo dates are generated relative to "now" (see `src/lib/demo/timeline.ts`), so
+screenshots always show upcoming deadlines rather than stale ones. `makeClient()`
+in `src/lib/fijii.ts` is the only switch between the two.
+
+To capture LinkedIn-ready stills:
+
+```bash
+DEMO_MODE=1 pnpm dev          # in one terminal
+node scripts/stills.mjs       # light + dark PNGs → ./stills/<theme>/
+```
+
+## How it works
 - The token and portal URL stay **server-side only** — there are no `NEXT_PUBLIC_` variables.
 - Reads go through **Server Actions** in `src/actions/`; there are no API routes and nothing calls
   the portal from the browser (the portal's CORS allow-list forbids it anyway).

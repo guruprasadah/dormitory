@@ -13,6 +13,20 @@ export function formatDue(daysUntilDue: number | null): string {
   return `due in ${value} days`;
 }
 
+/**
+ * Day-level version of {@link formatDue}, for sentence fragments such as
+ * "next one is due tomorrow" where fractional days ("overdue by 0.8 days")
+ * would read strangely.
+ */
+export function formatDueInDays(daysUntilDue: number | null): string {
+  if (daysUntilDue === null || !Number.isFinite(daysUntilDue)) return "no due date";
+  const days = Math.round(daysUntilDue);
+  if (days === 0) return "due today";
+  if (days === 1) return "due tomorrow";
+  if (days === -1) return "1 day overdue";
+  return days < 0 ? `${Math.abs(days)} days overdue` : `due in ${days} days`;
+}
+
 export type Urgency = "overdue" | "soon" | "upcoming" | "later";
 
 export function urgencyOf(daysUntilDue: number | null): Urgency {

@@ -11,7 +11,7 @@ import {
 
 export async function getTermsAction(): Promise<ActionResult<TermDto[]>> {
   try {
-    const fijii = makeClient();
+    const fijii = await makeClient();
     const terms = await fijii.attendance.terms();
     return ok(terms.map(toTermDto));
   } catch (error) {
@@ -21,7 +21,7 @@ export async function getTermsAction(): Promise<ActionResult<TermDto[]>> {
 
 export async function getAttendanceAction(termId?: number): Promise<ActionResult<AttendanceDto>> {
   try {
-    const fijii = makeClient();
+    const fijii = await makeClient();
     const summary = await fijii.attendanceSummary(termId);
     return ok(toAttendanceDto(summary));
   } catch (error) {

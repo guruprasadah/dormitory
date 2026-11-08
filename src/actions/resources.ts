@@ -12,7 +12,7 @@ import {
 
 async function loadResources(): Promise<ActionResult<ResourcesDto>> {
   try {
-    const fijii = makeClient();
+    const fijii = await makeClient();
     const classes = await fijii.classes.list();
 
     // Resources are per class, not per course — fetch each in parallel and

@@ -13,7 +13,7 @@ export async function getPendingAssignmentsAction(
   input: PendingAssignmentsInput = {},
 ): Promise<ActionResult<PendingAssignmentsDto>> {
   try {
-    const fijii = makeClient();
+    const fijii = await makeClient();
     let failedClasses = 0;
     const pending = await fijii.pendingAssignments({
       includeOverdue: input.includeOverdue ?? true,

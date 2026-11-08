@@ -8,7 +8,7 @@ import { AssignmentList } from "@/components/AssignmentCard";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { RecentResourceList } from "@/components/RecentResourceList";
 import { AssignmentListSkeleton, RingSkeleton, Skeleton } from "@/components/Skeletons";
-import { formatDue } from "@/lib/format";
+import { formatDueInDays } from "@/lib/format";
 
 export default function HomePage() {
   return (
@@ -130,7 +130,7 @@ async function UpcomingAssignments() {
     <div className="flex flex-col gap-3">
       <p className="text-sm text-zinc-500">
         {first
-          ? `${all.length} pending · next one ${formatDue(first.daysUntilDue)}`
+          ? `${all.length} pending · next one ${formatDueInDays(first.daysUntilDue)}`
           : "You have no pending assignments."}
       </p>
       <AssignmentList assignments={nearest} />
